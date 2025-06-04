@@ -1,0 +1,18 @@
+{
+  "name": "hand-cricket-game",
+  "private": true,
+  "workspaces": [
+    "Client/hand-cricket",
+    "Server"
+  ],
+  "scripts": {
+    "dev:client": "yarn workspace hand-cricket dev",
+    "dev:server": "yarn workspace server start",
+    "dev": "concurrently \"yarn dev:server\" \"yarn dev:client\"",
+    "build": "yarn workspaces run build",
+    "lint": "yarn workspaces run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1"
+  }
+}
