@@ -6,11 +6,11 @@
     "Server"
   ],
   "scripts": {
-    "dev:client": "yarn workspace hand-cricket dev",
-    "dev:server": "yarn workspace server start",
-    "dev": "concurrently \"yarn dev:server\" \"yarn dev:client\"",
-    "build": "yarn workspaces run build",
-    "lint": "yarn workspaces run lint"
+    "dev:client": "npm run dev --workspace=hand-cricket",
+    "dev:server": "npm run start --workspace=server",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces"
   },
   "devDependencies": {
     "concurrently": "^8.0.1"
