@@ -28,12 +28,16 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://hand-cricket-07.netlify.app",
-    methods: ["GET", "POST"]
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  credentials: true
+}));
 
 const rooms = new Map<string, GameRoom>();
 let totalPlayers = 0;

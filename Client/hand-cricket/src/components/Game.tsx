@@ -27,7 +27,7 @@ interface GameState {
   totalPlayers: number;
 }
 
-const SOCKET_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+const SOCKET_URL = import.meta.env.VITE_SERVER_URL || 'https://localhost:3001';
 
 const Game = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
