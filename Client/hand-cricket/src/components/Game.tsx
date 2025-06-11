@@ -27,6 +27,8 @@ interface GameState {
   totalPlayers: number;
 }
 
+const SOCKET_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+
 const Game = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [gameState, setGameState] = useState<GameState>({
@@ -87,7 +89,7 @@ const Game = () => {
   }, [gameState.waitingForSelection, gameState.timer, socket, gameState.roomId, gameState.role, gameState.gameOver]);
 
   useEffect(() => {
-    const newSocket = io('http://localhost:3001');
+    const newSocket = io(SOCKET_URL);
     setSocket(newSocket);
 
     newSocket.on('connect', () => {
