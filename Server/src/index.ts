@@ -36,9 +36,12 @@ const io = new Server(httpServer, {
 app.use(cors());
 
 const rooms = new Map<string, GameRoom>();
+let totalPlayers = 0;
 
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
+  totalPlayers++;
+  io.emit('playersUpdate', { totalPlayers });
 
   socket.on('findMatch', () => {
     let joinedRoom = false;
@@ -188,6 +191,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+    totalPlayers--;
+    io.emit('playersUpdate', { totalPlayers });
     for (const [roomId, room] of rooms) {
       if (room.players.includes(socket.id)) {
         io.to(roomId).emit('playerDisconnected');

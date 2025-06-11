@@ -24,6 +24,7 @@ interface GameState {
   lastBowlerSelection: number | null;
   timer: number;
   waitingForSelection: boolean;
+  totalPlayers: number;
 }
 
 const Game = () => {
@@ -43,12 +44,13 @@ const Game = () => {
     lastBatsmanSelection: null,
     lastBowlerSelection: null,
     timer: 5,
-    waitingForSelection: false
+    waitingForSelection: false,
+    totalPlayers: 0
   });
 
   // Timer effect
   useEffect(() => {
-    let timerInterval: NodeJS.Timeout | null = null;
+    let timerInterval: ReturnType<typeof setTimeout> | null = null;
 
     if (gameState.waitingForSelection && gameState.timer > 0) {
       timerInterval = setInterval(() => {
@@ -93,6 +95,10 @@ const Game = () => {
       setGameState(prev => ({ ...prev, message: 'Finding opponent...' }));
     });
 
+    newSocket.on('playersUpdate', ({ totalPlayers }) => {
+      setGameState(prev => ({ ...prev, totalPlayers }));
+    });
+
     newSocket.on('waiting', () => {
       setGameState(prev => ({ ...prev, message: 'Waiting for opponent...' }));
     });
@@ -126,7 +132,9 @@ const Game = () => {
     });
 
     newSocket.on('inningsComplete', ({ firstInningsScore, newRoles }) => {
-      const newRole = newRoles[newSocket.id].currentRole;
+      const newRole = newSocket.id && newRoles[newSocket.id]?.currentRole;
+      if (!newRole) return;
+      
       setGameState(prev => ({
         ...prev,
         role: newRole,
@@ -198,13 +206,17 @@ const Game = () => {
 
   return (
     <div
-      className="w-screen min-h-screen flex justify-center items-center p-4"
+      className="w-screen min-h-screen flex flex-col justify-center items-center p-4"
       style={{
         backgroundImage: `url(${bg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
     >
+      <div className="fixed top-4 left-4 bg-black/70 text-white px-4 py-2 rounded-lg">
+        <p className="text-lg">👥 Players Online: {gameState.totalPlayers}</p>
+      </div>
+
       {gameState.showConfetti && (
         <ReactConfetti
           width={window.innerWidth}
