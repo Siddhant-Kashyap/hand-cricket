@@ -26,9 +26,13 @@ interface GameRoom {
 
 const app = express();
 const httpServer = createServer(app);
+app.use(cors({
+  origin: "https://hand-cricket-07.netlify.app",
+  credentials: true
+}));
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://hand-cricket-07.netlify.app/",
+    origin: "https://hand-cricket-07.netlify.app", // ✅ MUST match
     methods: ["GET", "POST"],
     credentials: true
   }
