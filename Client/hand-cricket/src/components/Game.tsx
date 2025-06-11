@@ -22,6 +22,8 @@ interface GameState {
   isWinner: boolean;
   lastBatsmanSelection: number | null;
   lastBowlerSelection: number | null;
+  timer: number;
+  waitingForSelection: boolean;
 }
 
 const Game = () => {
@@ -39,8 +41,48 @@ const Game = () => {
     showConfetti: false,
     isWinner: false,
     lastBatsmanSelection: null,
-    lastBowlerSelection: null
+    lastBowlerSelection: null,
+    timer: 5,
+    waitingForSelection: false
   });
+
+  // Timer effect
+  useEffect(() => {
+    let timerInterval: NodeJS.Timeout | null = null;
+
+    if (gameState.waitingForSelection && gameState.timer > 0) {
+      timerInterval = setInterval(() => {
+        setGameState(prev => {
+          if (prev.timer <= 1) {
+            // Time's up - handle timeout
+            if (socket && gameState.roomId && !gameState.gameOver) {
+              if (gameState.role === 'batsman') {
+                // Batsman timeout - counted as out
+                socket.emit('makeSelection', {
+                  roomId: gameState.roomId,
+                  selection: 0, // Special value for timeout
+                  role: gameState.role
+                });
+              } else {
+                // Bowler timeout - reward batsman with 4 runs
+                socket.emit('makeSelection', {
+                  roomId: gameState.roomId,
+                  selection: 4,
+                  role: gameState.role
+                });
+              }
+            }
+            return { ...prev, timer: 5, waitingForSelection: false };
+          }
+          return { ...prev, timer: prev.timer - 1 };
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timerInterval) clearInterval(timerInterval);
+    };
+  }, [gameState.waitingForSelection, gameState.timer, socket, gameState.roomId, gameState.role, gameState.gameOver]);
 
   useEffect(() => {
     const newSocket = io('http://localhost:3001');
@@ -61,7 +103,9 @@ const Game = () => {
         role,
         roomId,
         currentInnings,
-        message: `You are the ${role}!`
+        message: `You are the ${role}!`,
+        waitingForSelection: true,
+        timer: 5
       }));
     });
 
@@ -74,8 +118,10 @@ const Game = () => {
         lastBatsmanSelection: result.batsmanSelection,
         lastBowlerSelection: result.bowlerSelection,
         message: result.isOut 
-          ? 'OUT!' 
-          : `+${result.batsmanSelection} runs! (${result.score}/${result.balls})`
+          ? (result.batsmanSelection === 0 ? 'OUT! (Timeout)' : 'OUT!') 
+          : `+${result.batsmanSelection} runs! (${result.score}/${result.balls})`,
+        waitingForSelection: true,
+        timer: 5
       }));
     });
 
@@ -143,6 +189,11 @@ const Game = () => {
       selection: value,
       role: gameState.role
     });
+    setGameState(prev => ({
+      ...prev,
+      waitingForSelection: false,
+      timer: 5
+    }));
   };
 
   return (
@@ -180,6 +231,22 @@ const Game = () => {
                 <p className="text-lg">Last Ball:</p>
                 <p className="text-md">Batsman: {gameState.lastBatsmanSelection}</p>
                 <p className="text-md">Bowler: {gameState.lastBowlerSelection}</p>
+              </div>
+            )}
+            {gameState.waitingForSelection && (
+              <div className="mt-4">
+                <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-red-500 transition-all duration-1000"
+                    style={{ width: `${(gameState.timer / 5) * 100}%` }}
+                  ></div>
+                </div>
+                <p className="text-lg font-bold text-red-500 mt-2">
+                  Time remaining: {gameState.timer}s
+                  {gameState.role === 'batsman' 
+                    ? ' (Out if time expires!)' 
+                    : ' (Batsman gets 4 runs if time expires!)'}
+                </p>
               </div>
             )}
             <p className="text-lg font-bold text-yellow-400 mt-4">{gameState.message}</p>

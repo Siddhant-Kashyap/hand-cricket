@@ -112,9 +112,17 @@ io.on('connection', (socket) => {
 
     // Only process the turn if both players have made their selections
     if (room.gameState.batsmanSelection !== null && room.gameState.bowlerSelection !== null) {
-      const isBatsmanOut = room.gameState.batsmanSelection === room.gameState.bowlerSelection;
+      // Handle timeout scenarios
+      const isBatsmanTimeout = room.gameState.batsmanSelection === 0;
+      const isBowlerRewardingRun = role === 'bowler' && selection === 4;
+      
+      let isBatsmanOut = isBatsmanTimeout || 
+        (!isBowlerRewardingRun && room.gameState.batsmanSelection === room.gameState.bowlerSelection);
+      
       const newBalls = room.gameState.balls + 1;
-      const newScore = isBatsmanOut ? room.gameState.score : room.gameState.score + room.gameState.batsmanSelection;
+      let runsScored = isBatsmanOut ? 0 : 
+        (isBowlerRewardingRun ? 4 : room.gameState.batsmanSelection);
+      const newScore = room.gameState.score + runsScored;
       const isInningsComplete = isBatsmanOut || newBalls >= 6;
 
       // Second innings special conditions
