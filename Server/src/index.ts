@@ -28,14 +28,14 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: "https://hand-cricket-07.netlify.app/",
     methods: ["GET", "POST"],
     credentials: true
   }
 });
 
 app.use(cors({
-  origin: "*",
+  origin: "https://hand-cricket-07.netlify.app/",
   credentials: true
 }));
 
