@@ -28,7 +28,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // We'll update this later with specific domains
+    origin: "https://hand-cricket-07.netlify.app",
     methods: ["GET", "POST"]
   }
 });
